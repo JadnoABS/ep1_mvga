@@ -254,25 +254,17 @@ void forma_escalonada_reduzida(Matriz * mat, Matriz * agregada){
       troca_linha(mat, i, linha_pivo);
       if(agregada) troca_linha(agregada, i, linha_pivo);
     }
+    multiplica_linha(mat, i, 1/(mat->m[i][coluna_pivo]));
+    if(agregada) multiplica_linha(agregada, i, 1/(mat->m[i][coluna_pivo]));
+
+    if(agregada){ imprime_matrizes(mat, agregada); printf("\n"); }
+    else { imprime_matriz(mat); printf("\n"); }
 
     for(int j = 0; j < mat->lin; j++){
       if(j == i) continue;
       double valorMult = -(mat->m[j][coluna_pivo]/mat->m[i][coluna_pivo]);
       combina_linhas(mat, j, i, valorMult);
       if(agregada) combina_linhas(agregada, j, i, valorMult);
-    }
-
-    if(agregada){ imprime_matrizes(mat, agregada); printf("\n"); }
-    else { imprime_matriz(mat); printf("\n"); }
-  }
-
-  for(int i = 0; i < mat->lin; i++){
-    
-    int linha_pivo; int coluna_pivo;
-    encontra_linha_pivo(mat, i, &linha_pivo, &coluna_pivo);
-
-    for(int j = 0; j < mat->col; j++){
-      mat->m[i][j] *= 1/(mat->m[i][coluna_pivo]);
     }
 
     if(agregada){ imprime_matrizes(mat, agregada); printf("\n"); }
@@ -315,7 +307,7 @@ int main(){
     forma_escalonada_reduzida(mat, NULL);
 
     for(int i = 0; i < mat->lin; i++)
-      printf("%lf\n", mat->m[i][mat->col-1]);
+      printf("%.2lf\n", mat->m[i][mat->col-1]);
 
 	}
 	else if(strcmp("inverte", operacao) == 0){
