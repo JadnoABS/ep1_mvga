@@ -134,7 +134,7 @@ void multiplica_linha(Matriz * mat, int i, double k){
 void combina_linhas(Matriz * mat, int i1, int i2, double k){
 
   for(int j = 0; j < mat->col; j++){
-    mat->m[i1][j] = mat->m[i1][j] + (mat->m[i2][j] * k);
+    mat->m[i1][j] += (mat->m[i2][j] * k);
   }
 
   return;
@@ -173,6 +173,9 @@ void encontra_linha_pivo(Matriz * mat, int ini, int * linha_pivo, int * coluna_p
 
 double forma_escalonada(Matriz *  mat, Matriz * agregada){
 
+  // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
+  // else { imprime_matriz(mat); printf("\n"); }
+
   // Operacoes elementares para triangularizar a matriz
   for(int i = 0; i < mat->lin; i++){
 
@@ -184,6 +187,8 @@ double forma_escalonada(Matriz *  mat, Matriz * agregada){
       if(agregada) troca_linha(agregada, i, linha_pivo);
     }
 
+    // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
+    // else { imprime_matriz(mat); printf("\n"); }
     for(int j = i+1; j < mat->lin; j++){
       if(abs(mat->m[j][coluna_pivo]) > SMALL){
         double valorMult = -(mat->m[j][coluna_pivo]) / (mat->m[i][coluna_pivo]);
@@ -191,6 +196,8 @@ double forma_escalonada(Matriz *  mat, Matriz * agregada){
         if(agregada) combina_linhas(agregada, j, i, valorMult);
       }
     }
+    // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
+    // else { imprime_matriz(mat); printf("\n"); }
   }
 
   // Calculo do determinante da matriz triangular
@@ -203,11 +210,12 @@ double forma_escalonada(Matriz *  mat, Matriz * agregada){
     int linha_pivo; int coluna_pivo;
     encontra_linha_pivo(mat, i, &linha_pivo, &coluna_pivo);
 
-    multiplica_linha(mat, i, 1/(mat->m[i][coluna_pivo]));
-    if(agregada) multiplica_linha(agregada, i, 1/(mat->m[i][coluna_pivo]));
+    double valorMult = 1 / mat->m[i][coluna_pivo];
+    multiplica_linha(mat, i, valorMult);
+    if(agregada) multiplica_linha(agregada, i, valorMult);
   }
 
-	return determinante;
+  return determinante;
 }
 
 // implementa a eliminacao de Gauss-Jordan que coloca a matriz quadrada "mat" na forma 
@@ -218,35 +226,30 @@ double forma_escalonada(Matriz *  mat, Matriz * agregada){
 
 void forma_escalonada_reduzida(Matriz * mat, Matriz * agregada){
 
-  if(agregada){ imprime_matrizes(mat, agregada); printf("\n"); }
-  else { imprime_matriz(mat); printf("\n"); }
+  // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
+  // else { imprime_matriz(mat); printf("\n"); }
 
-  for(int i = 0; i < mat->lin; i++){
+  forma_escalonada(mat, agregada);
+
+  // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
+  // else { imprime_matriz(mat); printf("\n"); }
+
+  for(int i = mat->lin-1; i > 0; i--){
 
     int linha_pivo; int coluna_pivo;
     encontra_linha_pivo(mat, i, &linha_pivo, &coluna_pivo);
 
-    if(linha_pivo != i){
-      troca_linha(mat, i, linha_pivo);
-      if(agregada) troca_linha(agregada, i, linha_pivo);
-    }
-    multiplica_linha(mat, i, 1/(mat->m[i][coluna_pivo]));
-    if(agregada) multiplica_linha(agregada, i, 1/(mat->m[i][coluna_pivo]));
+    for(int j = i-1; j >= 0; j--){
 
-    if(agregada){ imprime_matrizes(mat, agregada); printf("\n"); }
-    else { imprime_matriz(mat); printf("\n"); }
-
-    for(int j = 0; j < mat->lin; j++){
-      if(j == i) continue;
-      double valorMult = -(mat->m[j][coluna_pivo]/mat->m[i][coluna_pivo]);
+      double valorMult = -(mat->m[j][coluna_pivo]) / (mat->m[i][coluna_pivo]);
       combina_linhas(mat, j, i, valorMult);
       if(agregada) combina_linhas(agregada, j, i, valorMult);
+
     }
 
-    if(agregada){ imprime_matrizes(mat, agregada); printf("\n"); }
-    else { imprime_matriz(mat); printf("\n"); }
+    // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
+    // else { imprime_matriz(mat); printf("\n"); }
   }
-
 }
 
 void lerMatriz(Matriz* mat) {
@@ -300,7 +303,7 @@ int main(){
     Matriz* mat = cria_matriz(n,n);
     lerMatriz(mat);
 
-    double determinante = forma_escalonada(mat, NULL);
+    double determinante = forma_escalonada(mat, cria_identidade(n));
     printf("%.2lf\n", determinante);
 
 	} else {
