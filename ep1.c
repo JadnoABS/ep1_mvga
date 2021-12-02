@@ -166,34 +166,6 @@ void encontra_linha_pivo(Matriz * mat, int ini, int * linha_pivo, int * coluna_p
 }
 
 
-double menorDaEntrada(Matriz* mat, int i, int j) {
-
-  Matriz* nova = cria_matriz(mat->lin-1, mat->col-1);
-
-  int i0 = 0; int j0 = 0; 
-  for(int x = 0; x < mat->lin-1; x++){
-    if(i0 == i) i0++;
-    for(int y = 0; y < mat->col-1; y++){
-      if(j0 == j) j0++;
-      nova->m[x][y] = mat->m[i0][j0]; 
-      j0++;
-    }
-    j0 = 0;
-    i0++;
-  }
-
-  if(nova->lin == 1 && nova->col == 1) return nova->m[0][0];
-
-  double menor = 0;
-  for(int x = 0; x < nova->col; x++){
-    menor += nova->m[0][x] * (pow(-1, 1+(x+1)) * menorDaEntrada(nova, 0, x));
-  }
-
-  free(nova);
-  return menor;
-}
-
-
 // implementa a eliminacao gaussiana que coloca a matriz quadrada "mat" na forma escalonada.
 // As operacoes realizadas para colocar a matriz "mat" na forma escalonada tambem devem ser 
 // aplicadas na matriz "agregada" caso esta seja nao nula. Esta funcao tambem deve calcular 
@@ -201,13 +173,7 @@ double menorDaEntrada(Matriz* mat, int i, int j) {
 
 double forma_escalonada(Matriz *  mat, Matriz * agregada){
 
-  double determinante = 0; double cofator = 0;
-  int linha = 0;
-  for(int coluna = 0; coluna < mat->col; coluna++){
-    cofator = pow(-1, (linha+1)+(coluna+1)) * menorDaEntrada(mat, linha, coluna);
-    determinante += mat->m[linha][coluna] * cofator;
-  }
-
+  // Operacoes elementares para triangularizar a matriz
   for(int i = 0; i < mat->lin; i++){
 
     int linha_pivo; int coluna_pivo;
@@ -218,16 +184,27 @@ double forma_escalonada(Matriz *  mat, Matriz * agregada){
       if(agregada) troca_linha(agregada, i, linha_pivo);
     }
 
-    multiplica_linha(mat, i, 1/(mat->m[i][coluna_pivo]));
-    if(agregada) multiplica_linha(agregada, i, 1/(mat->m[i][coluna_pivo]));
-
     for(int j = i+1; j < mat->lin; j++){
       if(abs(mat->m[j][coluna_pivo]) > SMALL){
-        combina_linhas(mat, j, i, -(mat->m[j][coluna_pivo]));
-        if(agregada) combina_linhas(agregada, j, i, -(mat->m[j][coluna_pivo]));
+        double valorMult = -(mat->m[j][coluna_pivo]) / (mat->m[i][coluna_pivo]);
+        combina_linhas(mat, j, i, valorMult);
+        if(agregada) combina_linhas(agregada, j, i, valorMult);
       }
     }
+  }
 
+  // Calculo do determinante da matriz triangular
+  // Logo apos, operacoes para construir uma diagonal principal com elementos = 1
+  double determinante = 1;
+
+  for(int i = 0; i < mat->lin; i++){
+    determinante *= mat->m[i][i];
+
+    int linha_pivo; int coluna_pivo;
+    encontra_linha_pivo(mat, i, &linha_pivo, &coluna_pivo);
+
+    multiplica_linha(mat, i, 1/(mat->m[i][coluna_pivo]));
+    if(agregada) multiplica_linha(agregada, i, 1/(mat->m[i][coluna_pivo]));
   }
 
 	return determinante;
@@ -245,7 +222,6 @@ void forma_escalonada_reduzida(Matriz * mat, Matriz * agregada){
   else { imprime_matriz(mat); printf("\n"); }
 
   for(int i = 0; i < mat->lin; i++){
-
 
     int linha_pivo; int coluna_pivo;
     encontra_linha_pivo(mat, i, &linha_pivo, &coluna_pivo);
