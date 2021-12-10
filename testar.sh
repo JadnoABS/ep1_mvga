@@ -7,6 +7,8 @@ testes=( "1A" "1B" "1C" "1D" "1E" "1F" "1G"
 
 for i in "${testes[@]}" 
 do
+  echo 'Teste '$i
+  echo ''
   echo 'Resultado do programa:'
   ./a.out < entradas/entrada"$i".txt
   echo ''
