@@ -1,3 +1,14 @@
+/*
+  ##############################
+  EP1 - ACH2033-203-2021
+  Professor: Flávio Luiz Coutinho
+  Alunos:
+    Ana Clara Diamantino de Vasconcelos - 12674398
+    Jadno Augusto Barbosa da Silva - 12608618
+  ##############################
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,12 +19,12 @@
 // do que o valor definido por esta constante, eles devem ser
 // considerados iguais.
 
-#define SMALL 0.000001 
+#define SMALL 0.000001
 
 // struct que representa uma matriz de valores do tipo double.
 
 typedef struct {
-	
+
 	double ** m;
 	int lin, col;
 
@@ -23,10 +34,10 @@ typedef struct {
 // cria uma matriz de n linhas por m colunas com todas as entradas iguais a zero.
 
 Matriz * cria_matriz(int n, int m){
-	
+
 	int i;
 
-	Matriz * mat = (Matriz *) malloc (sizeof(Matriz)); 
+	Matriz * mat = (Matriz *) malloc (sizeof(Matriz));
 
 	mat->lin = n;
 	mat->col = m;
@@ -65,7 +76,7 @@ void imprime_matriz(Matriz * mat){
 	for(i = 0; i < mat->lin; i++){
 
 		for(j = 0; j < mat->col; j++){
-	
+
 			printf("%7.2f ", mat->m[i][j]);
 		}
 
@@ -86,14 +97,14 @@ void imprime_matrizes(Matriz * mat, Matriz * agregada){
 	for(i = 0; i < mat->lin; i++){
 
 		for(j = 0; j < mat->col; j++){
-	
+
 			printf("%7.2f ", mat->m[i][j]);
 		}
 
 		printf(" |");
 
 		for(j = 0; j < agregada->col; j++){
-	
+
 			printf("%7.2f ", agregada->m[i][j]);
 		}
 
@@ -127,7 +138,7 @@ void multiplica_linha(Matriz * mat, int i, double k){
 }
 
 // funcao que faz a seguinte combinacao de duas linhas da matriz:
-//	
+//
 // 	(linha i1) = (linha i1) + (linha i2 * k)
 //
 
@@ -154,8 +165,8 @@ void encontra_linha_pivo(Matriz * mat, int ini, int * linha_pivo, int * coluna_p
 	*coluna_pivo = mat->col;
 
 	for(i = ini; i < mat->lin; i++){
-	
-		for(j = 0; j < mat->col; j++) if(fabs(mat->m[i][j]) > 0) break;
+
+		for(j = 0; j < mat->col; j++) if(fabs(mat->m[i][j]) > SMALL) break;
 
 		if(j < *coluna_pivo) {
 
@@ -167,37 +178,32 @@ void encontra_linha_pivo(Matriz * mat, int ini, int * linha_pivo, int * coluna_p
 
 
 // implementa a eliminacao gaussiana que coloca a matriz quadrada "mat" na forma escalonada.
-// As operacoes realizadas para colocar a matriz "mat" na forma escalonada tambem devem ser 
-// aplicadas na matriz "agregada" caso esta seja nao nula. Esta funcao tambem deve calcular 
+// As operacoes realizadas para colocar a matriz "mat" na forma escalonada tambem devem ser
+// aplicadas na matriz "agregada" caso esta seja nao nula. Esta funcao tambem deve calcular
 // e devolver o determinante de "mat".
 
 double forma_escalonada(Matriz *  mat, Matriz * agregada){
 
-  // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
-  // else { imprime_matriz(mat); printf("\n"); }
-
   // Operacoes elementares para triangularizar a matriz
+  int linha_pivo; int coluna_pivo;
   for(int i = 0; i < mat->lin; i++){
 
-    int linha_pivo; int coluna_pivo;
     encontra_linha_pivo(mat, i, &linha_pivo, &coluna_pivo);
 
+    if (linha_pivo == mat->lin) return 0.0;
     if(linha_pivo != i){
       troca_linha(mat, i, linha_pivo);
       if(agregada) troca_linha(agregada, i, linha_pivo);
     }
 
-    // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
-    // else { imprime_matriz(mat); printf("\n"); }
     for(int j = i+1; j < mat->lin; j++){
-      if(abs(mat->m[j][coluna_pivo]) > SMALL){
+      if(fabs(mat->m[j][coluna_pivo]) > SMALL){
+        
         double valorMult = -(mat->m[j][coluna_pivo]) / (mat->m[i][coluna_pivo]);
         combina_linhas(mat, j, i, valorMult);
         if(agregada) combina_linhas(agregada, j, i, valorMult);
       }
     }
-    // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
-    // else { imprime_matriz(mat); printf("\n"); }
   }
 
   // Calculo do determinante da matriz triangular
@@ -206,7 +212,7 @@ double forma_escalonada(Matriz *  mat, Matriz * agregada){
 
   for(int i = 0; i < mat->lin; i++){
     determinante *= mat->m[i][i];
-
+    
     int linha_pivo; int coluna_pivo;
     encontra_linha_pivo(mat, i, &linha_pivo, &coluna_pivo);
 
@@ -218,37 +224,45 @@ double forma_escalonada(Matriz *  mat, Matriz * agregada){
   return determinante;
 }
 
-// implementa a eliminacao de Gauss-Jordan que coloca a matriz quadrada "mat" na forma 
-// escalonada reduzida. As operacoes realizadas para colocar a matriz "mat" na forma 
-// escalonada reduzida tambem devem ser aplicadas na matriz "agregada" caso esta seja 
-// nao nula. Nao se pode assumir que "mat" jah esteja na forma escalonada (mas voce 
+// implementa a eliminacao de Gauss-Jordan que coloca a matriz quadrada "mat" na forma
+// escalonada reduzida. As operacoes realizadas para colocar a matriz "mat" na forma
+// escalonada reduzida tambem devem ser aplicadas na matriz "agregada" caso esta seja
+// nao nula. Nao se pode assumir que "mat" jah esteja na forma escalonada (mas voce
 // pode usar a funcao acima para isso).
 
 void forma_escalonada_reduzida(Matriz * mat, Matriz * agregada){
 
-  // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
-  // else { imprime_matriz(mat); printf("\n"); }
-
   forma_escalonada(mat, agregada);
+  
+  if(!agregada) {
+    if(fabs(forma_escalonada(mat, agregada)) < SMALL) {
+      if(fabs(mat->m[mat->lin - 1][mat->col - 1]) < SMALL) {
+        printf("sistema possui diversas soluções\n"); 
+        return;
+      }
+      else {
+        printf("sistema sem solução\n"); 
+        return;
+      }
+    }
+  }
 
-  // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
-  // else { imprime_matriz(mat); printf("\n"); }
+  else {
+    for(int i = mat->lin-1; i > 0; i--){
 
-  for(int i = mat->lin-1; i > 0; i--){
+      int linha_pivo; int coluna_pivo;
+      encontra_linha_pivo(mat, i, &linha_pivo, &coluna_pivo);
+      
 
-    int linha_pivo; int coluna_pivo;
-    encontra_linha_pivo(mat, i, &linha_pivo, &coluna_pivo);
+      for(int j = i-1; j >= 0; j--){
 
-    for(int j = i-1; j >= 0; j--){
-
-      double valorMult = -(mat->m[j][coluna_pivo]) / (mat->m[i][coluna_pivo]);
-      combina_linhas(mat, j, i, valorMult);
-      if(agregada) combina_linhas(agregada, j, i, valorMult);
+        double valorMult = -(mat->m[j][coluna_pivo]) / (mat->m[i][coluna_pivo]);
+        combina_linhas(mat, j, i, valorMult);
+        if(agregada) combina_linhas(agregada, j, i, valorMult);
+        
+      }
 
     }
-
-    // if(agregada) { imprime_matrizes(mat, agregada); printf("\n"); }
-    // else { imprime_matriz(mat); printf("\n"); }
   }
 }
 
@@ -271,23 +285,16 @@ int main(){
 	scanf("%d", &n);	// le a dimensão da matriz a ser manipulada pela operacao escolhida.
 
 
-
-  // imprime_matriz(mat);
-  // printf("\n");
-
-  // forma_escalonada_reduzida(mat, NULL);
-
-  // imprime_matriz(mat);
-  // printf("\n");
-	
 	if(strcmp("resolve", operacao) == 0){
     Matriz* mat = cria_matriz(n,n+1);
     lerMatriz(mat);
     forma_escalonada_reduzida(mat, NULL);
-
+    if(forma_escalonada(mat, NULL) != 0){
     for(int i = 0; i < mat->lin; i++)
       printf("%.2lf\n", mat->m[i][mat->col-1]);
+    }
 
+    if(mat) free(mat);
 	}
 	else if(strcmp("inverte", operacao) == 0){
     Matriz* mat = cria_matriz(n,n);
@@ -296,8 +303,15 @@ int main(){
     Matriz* inv = cria_identidade(n);
 
     forma_escalonada_reduzida(mat, inv);
+    if(forma_escalonada(mat, inv) == 0) {
+      printf("matriz singular");
+    }
+    else {
+      imprime_matriz(inv);
+    }
 
-    imprime_matriz(inv);
+    if(mat) free(mat);
+    if(inv) free(inv);
 	}
 	else if(strcmp("determinante", operacao) == 0){
     Matriz* mat = cria_matriz(n,n);
@@ -306,6 +320,7 @@ int main(){
     double determinante = forma_escalonada(mat, cria_identidade(n));
     printf("%.2lf\n", determinante);
 
+    if(mat) free(mat);
 	} else {
 		printf("Operação desconhecida!\n");
 		return 1;
@@ -314,4 +329,3 @@ int main(){
 
 	return 0;
 }
-
